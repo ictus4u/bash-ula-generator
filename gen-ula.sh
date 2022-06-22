@@ -321,9 +321,12 @@ if [ -z "${clock}" ]; then
         # Output: "dcf4268b.208dd000"
     elif now="$(ntpdate -d -q "$NTP_server" 2>&99 )" ; then
         clock="$(echo "$now" | sed -n -e'/^transmit timestamp:/!d;s/^transmit timestamp: *\([0-9a-fA-F][0-9a-fA-F.]*\) .*/\1/p' | tail -n 1 | tr -d '.')"
+    elif now="$(2>&99 ntpq -c 'rv 0 clock' | grep 'clock=')" ; then
+    # provided NTP_server could not be found but we query locally
+        clock="$(echo "$now"  | tail -n 1 | cut -c7-23)"
     else
         99>&-
-        die "Unable to contact $NTP_server"
+        die "Unable to contact a NTP server"
     fi
     99>&-
 fi
